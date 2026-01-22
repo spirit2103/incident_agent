@@ -1,0 +1,278 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "incident-alert",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2f7016b0-463a-48b1-9bdf-4e6824d54175",
+      "name": "Webhook",
+      "webhookId": "e08bed48-001a-406b-a6e8-dc39520d2177"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a7a76f11-7171-443e-9c70-0d0bdbdcc43e",
+              "name": "service",
+              "value": "={{ $json.service }}",
+              "type": "string"
+            },
+            {
+              "id": "96c304bd-a822-426e-bca6-28af144ad0e9",
+              "name": "error_rate",
+              "value": "={{ $json.error_rate }}",
+              "type": "number"
+            },
+            {
+              "id": "5e8c65c9-8859-40cb-a003-bec2dbc8a876",
+              "name": "latency",
+              "value": "={{ $json.latency_ms }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "9d1d0e21-5622-49cb-b9f9-7eca4e20d0f2",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "afe7912e-71b5-44d0-ae68-faea0448d341",
+              "leftValue": "={{$json.error_rate}}",
+              "rightValue": 10,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "2153d635-9392-468c-857a-d9d8e8deb811",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9f816b9e-a3a8-427f-bc3d-b69cb9dd02b9",
+              "name": "severity",
+              "value": "SEV-2",
+              "type": "string"
+            },
+            {
+              "id": "f9346b7b-0e67-4155-99b9-d92cf72ecbc1",
+              "name": "service",
+              "value": "={{ $json.service }}",
+              "type": "string"
+            },
+            {
+              "id": "3f9a9d66-a486-41ca-a97e-bc4567685160",
+              "name": "error rate",
+              "value": "={{ $json.error_rate }}",
+              "type": "string"
+            },
+            {
+              "id": "5c86c755-5283-4e2e-96ae-c132f7033263",
+              "name": "latency",
+              "value": "={{ $json.latency}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -32,
+        208
+      ],
+      "id": "7743725c-2002-42a4-a40e-2767c7fbf19b",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are the SRE incident assistant. Analyse the incident and suggest next steps."
+            },
+            {
+              "content": "=Service: {{ $json.service }}\nError rate: {{ $json.error_rate }}%\nLatency: {{ $json.latency }}ms\nSeverity: {{ $json.severity }}\n\nExplain the possible cause and next action."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        144,
+        208
+      ],
+      "id": "da496680-91ae-48ab-970a-09c722f7d86f",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "3SiyVndL2aDAIDmS",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "sushanthgowda2103@outlook.com",
+        "toEmail": "sushanthgowda2103@outlook.com",
+        "subject": "=INCIDENT - {{ $json.service}}",
+        "emailFormat": "text",
+        "text": "=Incident Detected\n\nService: {{ $json.service }}\nError rate: {{ $json.error_rate }}%\nLatency: {{ $json.latency }}%\nSeverity: {{ $json.severity }}\n\nAI Analysis:\n{{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        464,
+        208
+      ],
+      "id": "bc99127b-f418-43ae-82bc-8b68086c9db8",
+      "name": "Send email",
+      "webhookId": "d81a756e-e5d9-4a82-878f-6bdbe2d31432",
+      "credentials": {
+        "smtp": {
+          "id": "tQAh7UCYh14qWDmU",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "service": "payments-service",
+          "error_rate": 18,
+          "latency_ms": 5200,
+          "timestamp": "2026-01-22T10:44:00Z"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send email": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "232e5ae5-3ce3-4c85-85c5-0ddf83c7090c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cbac500b2abb8ed4c3c03153d5f7067d98fa324572567e66523ded244c1f340d"
+  },
+  "id": "DxAW4PfMMqKgzXcOSrcjn",
+  "tags": []
+}
